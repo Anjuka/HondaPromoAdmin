@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import android.widget.Adapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<Profile> list;
     MyAdapter adapter;
     TextView tvTotalCount;
+    TextView tvRefresh;
     ProgressDialog nDialog;
 
     @Override
@@ -36,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager( new LinearLayoutManager(this));
         list = new ArrayList<Profile>();
         tvTotalCount = findViewById(R.id.tvTotalCount);
+        tvRefresh = findViewById(R.id.tvRefresh);
 
         nDialog = new ProgressDialog(MainActivity.this, R.style.MyAlertDialogStyle  );
         nDialog.setMessage("Loading..");
@@ -52,11 +55,11 @@ public class MainActivity extends AppCompatActivity {
                 for (DataSnapshot snapshot: dataSnapshot.getChildren()){
                     Profile p = snapshot.getValue(Profile.class);
                     list.add(p);
-                    tvTotalCount.setText("Total Records " + list.size());
                 }
 
                 adapter = new MyAdapter(MainActivity.this, list);
                 recyclerView.setAdapter(adapter);
+                tvTotalCount.setText("Total Records " + list.size());
                 nDialog.dismiss();
 
             }
@@ -67,7 +70,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
+        tvRefresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                recreate();
+            }
+        });
 
     }
 
