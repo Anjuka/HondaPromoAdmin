@@ -1,6 +1,10 @@
 package com.anjukakoralage.hondapromoadmin;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -8,6 +12,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Adapter;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,9 +21,16 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,6 +41,10 @@ public class MainActivity extends AppCompatActivity {
     TextView tvTotalCount;
     TextView tvRefresh;
     ProgressDialog nDialog;
+    Switch sw;
+    String dateTime;
+    String dateTime1;
+    Profile p;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,28 +56,40 @@ public class MainActivity extends AppCompatActivity {
         list = new ArrayList<Profile>();
         tvTotalCount = findViewById(R.id.tvTotalCount);
         tvRefresh = findViewById(R.id.tvRefresh);
+        sw = findViewById(R.id.sw);
 
-        nDialog = new ProgressDialog(MainActivity.this, R.style.MyAlertDialogStyle  );
+        nDialog = new ProgressDialog(MainActivity.this, R.style.MyAlertDialogStyle);
         nDialog.setMessage("Loading..");
         nDialog.setTitle("Get Data");;
         nDialog.setIndeterminate(false);
         nDialog.setCancelable(true);
 
+        tvRefresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent intent = getIntent();
+                finish();
+                startActivity(intent);
+
+            }
+        });
+
+
         reference = FirebaseDatabase.getInstance().getReference().child("user");
+
         nDialog.show();
         reference.addValueEventListener(new ValueEventListener() {
-
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot snapshot: dataSnapshot.getChildren()){
                     Profile p = snapshot.getValue(Profile.class);
                     list.add(p);
                 }
-
                 adapter = new MyAdapter(MainActivity.this, list);
                 recyclerView.setAdapter(adapter);
-                tvTotalCount.setText("Total Records " + list.size());
                 nDialog.dismiss();
+                tvTotalCount.setText("Total Records : " + list.size());
 
             }
 
@@ -70,12 +99,47 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        tvRefresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                recreate();
-            }
-        });
+        sw.setOnCheckedChangeListener(
+                new CompoundButton.OnCheckedChangeListener() {
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if (isChecked) {
+
+                            Toast.makeText(MainActivity.this,
+                                    "Show Today Results", Toast.LENGTH_SHORT).show();
+
+                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd");
+                            dateTime1 = sdf.format(Calendar.getInstance().getTime());
+
+                            reference = FirebaseDatabase.getInstance().getReference().child("user");
+
+                            nDialog.show();
+                            reference.addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    for (DataSnapshot snapshot: dataSnapshot.getChildren()){
+                                        Profile p = snapshot.getValue(Profile.class);
+                                        list.add(p);
+                                    }
+
+                                    Collections.reverse(list);
+                                    adapter = new MyAdapter(MainActivity.this, list);
+                                    recyclerView.setAdapter(adapter);
+                                    nDialog.dismiss();
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+                                    Toast.makeText(MainActivity.this, "Something went wrong...", Toast.LENGTH_LONG).show();
+                                }
+                            });
+                        } else {
+                            Toast.makeText(MainActivity.this,
+                                    "Show All Results", Toast.LENGTH_SHORT).show();
+                            recreate();
+
+                        }
+                    }
+                });
 
     }
 

@@ -8,18 +8,18 @@ public class Profile {
     private String age;
     private String tp;
     private String city;
-    private String date;
+    private String dateTime;
     private Boolean permission;
 
     public Profile() {
     }
 
-    public Profile(String name, String age, String tp, String city, String date, Boolean permission) {
+    public Profile(String name, String age, String tp, String city, String dateTime, Boolean permission) {
         this.name = name;
         this.age = age;
         this.tp = tp;
         this.city = city;
-        this.date = date;
+        this.dateTime = dateTime;
         this.permission = permission;
     }
 
@@ -55,12 +55,12 @@ public class Profile {
         this.city = city;
     }
 
-    public String getDate() {
-        return date;
+    public String getdateTime() {
+        return dateTime;
     }
 
-    public void setDate(String date) {
-        this.date = date;
+    public void setdateTime(String dateTime) {
+        this.dateTime = dateTime;
     }
 
     public Boolean getPermission() {

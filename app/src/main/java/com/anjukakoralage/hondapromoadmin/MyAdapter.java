@@ -35,8 +35,9 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         myViewHolder.name.setText("Name : " + profiles.get(i).getName());
         myViewHolder.age.setText("Age : " + profiles.get(i).getAge());
         myViewHolder.city.setText("City : " + profiles.get(i).getCity());
+        myViewHolder.time.setText("Time : " + profiles.get(i).getdateTime());
         myViewHolder.tp.setText("T.P. : " + profiles.get(i).getTp());
-        myViewHolder.time.setText("Time : " + profiles.get(i).getDate());
+
 
     }
 
