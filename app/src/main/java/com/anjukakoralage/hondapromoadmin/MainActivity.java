@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,6 +18,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -104,6 +106,9 @@ public class MainActivity extends AppCompatActivity {
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                         if (isChecked) {
 
+                            list.clear();
+                            tvTotalCount.setText("Register For Today");
+
                             Toast.makeText(MainActivity.this,
                                     "Show Today Results", Toast.LENGTH_SHORT).show();
 
@@ -112,26 +117,42 @@ public class MainActivity extends AppCompatActivity {
 
                             reference = FirebaseDatabase.getInstance().getReference().child("user");
 
-                            nDialog.show();
-                            reference.addValueEventListener(new ValueEventListener() {
+                            ChildEventListener childEventListener = new ChildEventListener() {
                                 @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    for (DataSnapshot snapshot: dataSnapshot.getChildren()){
-                                        Profile p = snapshot.getValue(Profile.class);
-                                        list.add(p);
+                                public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
+                                    Profile user = dataSnapshot.getValue(Profile.class);
+
+                                    if (dataSnapshot.hasChild("dateTime")) {
+
+                                        if (user.getdateTime().equals(dateTime1)) {
+                                            list.add(user);
+                                            adapter = new MyAdapter(MainActivity.this, list);
+                                            recyclerView.setAdapter(adapter);
+                                        }
                                     }
-
-                                    Collections.reverse(list);
-                                    adapter = new MyAdapter(MainActivity.this, list);
-                                    recyclerView.setAdapter(adapter);
-                                    nDialog.dismiss();
                                 }
 
                                 @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) {
-                                    Toast.makeText(MainActivity.this, "Something went wrong...", Toast.LENGTH_LONG).show();
+                                public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
+                                    //do somethings
                                 }
-                            });
+
+                                @Override
+                                public void onChildRemoved(DataSnapshot dataSnapshot) {
+                                    //...
+                                }
+
+                                @Override
+                                public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
+                                    //...
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+                                    //...
+                                }
+                            };
+                            reference.addChildEventListener(childEventListener);
                         } else {
                             Toast.makeText(MainActivity.this,
                                     "Show All Results", Toast.LENGTH_SHORT).show();
