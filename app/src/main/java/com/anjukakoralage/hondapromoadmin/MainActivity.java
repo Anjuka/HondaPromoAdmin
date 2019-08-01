@@ -1,6 +1,7 @@
 package com.anjukakoralage.hondapromoadmin;
 
 import android.app.Activity;
+import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,7 +14,10 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Adapter;
+import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,6 +32,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -43,10 +48,16 @@ public class MainActivity extends AppCompatActivity {
     TextView tvTotalCount;
     TextView tvRefresh;
     ProgressDialog nDialog;
-    Switch sw;
+    Button btnDate;
     String dateTime;
     String dateTime1;
+    private TextView tvNoData;
     Profile p;
+    DatePickerDialog datePickerDialog;
+    int year,month,dayOfMonth;
+    Calendar calendar;
+    String Month, Dayyy;
+    String finDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,8 +68,9 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager( new LinearLayoutManager(this));
         list = new ArrayList<Profile>();
         tvTotalCount = findViewById(R.id.tvTotalCount);
-        tvRefresh = findViewById(R.id.tvRefresh);
-        sw = findViewById(R.id.sw);
+        tvNoData = findViewById(R.id.tvNoData);
+        btnDate = findViewById(R.id.btnDate);
+
 
         nDialog = new ProgressDialog(MainActivity.this, R.style.MyAlertDialogStyle);
         nDialog.setMessage("Loading..");
@@ -66,17 +78,7 @@ public class MainActivity extends AppCompatActivity {
         nDialog.setIndeterminate(false);
         nDialog.setCancelable(true);
 
-        tvRefresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Intent intent = getIntent();
-                finish();
-                startActivity(intent);
-
-            }
-        });
-
+        /* Starting with all register data */
 
         reference = FirebaseDatabase.getInstance().getReference().child("user");
 
@@ -101,66 +103,97 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        sw.setOnCheckedChangeListener(
-                new CompoundButton.OnCheckedChangeListener() {
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        if (isChecked) {
+        /* End of Normal Load */
 
-                            list.clear();
-                            tvTotalCount.setText("Register For Today");
+        btnDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                calendar = Calendar.getInstance();
+                year = calendar.get(Calendar.YEAR);
+                month = calendar.get(Calendar.MONTH);
+                dayOfMonth  = calendar.get(Calendar.DAY_OF_MONTH);
 
-                            Toast.makeText(MainActivity.this,
-                                    "Show Today Results", Toast.LENGTH_SHORT).show();
+                list.clear();
 
-                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd");
-                            dateTime1 = sdf.format(Calendar.getInstance().getTime());
+                datePickerDialog = new DatePickerDialog(MainActivity.this,
+                        new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
 
-                            reference = FirebaseDatabase.getInstance().getReference().child("user");
+                        if(month < 10){
 
-                            ChildEventListener childEventListener = new ChildEventListener() {
-                                @Override
-                                public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
-                                    Profile user = dataSnapshot.getValue(Profile.class);
-
-                                    if (dataSnapshot.hasChild("dateTime")) {
-
-                                        if (user.getdateTime().equals(dateTime1)) {
-                                            list.add(user);
-                                            adapter = new MyAdapter(MainActivity.this, list);
-                                            recyclerView.setAdapter(adapter);
-                                        }
-                                    }
-                                }
-
-                                @Override
-                                public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                                    //do somethings
-                                }
-
-                                @Override
-                                public void onChildRemoved(DataSnapshot dataSnapshot) {
-                                    //...
-                                }
-
-                                @Override
-                                public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
-                                    //...
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-                                    //...
-                                }
-                            };
-                            reference.addChildEventListener(childEventListener);
-                        } else {
-                            Toast.makeText(MainActivity.this,
-                                    "Show All Results", Toast.LENGTH_SHORT).show();
-                            recreate();
-
+                            Month = "0" + (month + 1);
                         }
+                        if(dayOfMonth < 10){
+
+                            Dayyy  = "0" + dayOfMonth ;
+                        }
+                        else {
+                            Dayyy = String.valueOf(dayOfMonth);
+                        }
+                        finDate = (year + " " + Month + " " + Dayyy);
+                        btnDate.setText(finDate);
+
+                        nDialog.show();
+
+                        reference = FirebaseDatabase.getInstance().getReference().child("user");
+
+                        ChildEventListener childEventListener = new ChildEventListener() {
+                            @Override
+                            public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
+                                Profile user = dataSnapshot.getValue(Profile.class);
+
+                                if (dataSnapshot.hasChild("dateTime")) {
+
+                                    if (user.getdateTime().equals(finDate) ){
+                                        tvNoData.setVisibility(View.GONE);
+                                        recyclerView.setVisibility(View.VISIBLE);
+                                        list.add(user);
+                                        adapter = new MyAdapter(MainActivity.this, list);
+                                        recyclerView.setAdapter(adapter);
+                                        tvTotalCount.setText("Total Records : " + list.size());
+
+                                    }
+
+                                }
+                                nDialog.hide();
+                            }
+
+                            @Override
+                            public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
+                                //do somethings
+                            }
+
+                            @Override
+                            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                                //...
+                            }
+
+                            @Override
+                            public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
+                                //...
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                //...
+                            }
+                        };
+                        reference.addChildEventListener(childEventListener);
                     }
-                });
+                },year,month,dayOfMonth);
+
+                datePickerDialog.show();
+
+                //list.clear();
+
+                Toast.makeText(MainActivity.this,
+                        "Show Today Results", Toast.LENGTH_SHORT).show();
+
+
+            }
+        });
+
 
     }
 
