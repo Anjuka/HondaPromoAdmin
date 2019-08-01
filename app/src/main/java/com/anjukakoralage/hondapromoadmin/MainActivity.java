@@ -71,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
         tvNoData = findViewById(R.id.tvNoData);
         btnDate = findViewById(R.id.btnDate);
 
+        recyclerView.setVisibility(View.GONE);
+        btnDate.setVisibility(View.VISIBLE);
+
 
         nDialog = new ProgressDialog(MainActivity.this, R.style.MyAlertDialogStyle);
         nDialog.setMessage("Loading..");
@@ -80,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
         /* Starting with all register data */
 
-        reference = FirebaseDatabase.getInstance().getReference().child("user");
+        /*reference = FirebaseDatabase.getInstance().getReference().child("user");
 
         nDialog.show();
         reference.addValueEventListener(new ValueEventListener() {
@@ -101,19 +104,24 @@ public class MainActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(MainActivity.this, "Something went wrong...", Toast.LENGTH_LONG).show();
             }
-        });
+        });*/
 
         /* End of Normal Load */
 
         btnDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                recyclerView.stopScroll();
+                list.clear();
+
                 calendar = Calendar.getInstance();
                 year = calendar.get(Calendar.YEAR);
                 month = calendar.get(Calendar.MONTH);
                 dayOfMonth  = calendar.get(Calendar.DAY_OF_MONTH);
 
-                list.clear();
+                recyclerView.setVisibility(View.VISIBLE);
+                tvNoData.setVisibility(View.GONE);
 
                 datePickerDialog = new DatePickerDialog(MainActivity.this,
                         new DatePickerDialog.OnDateSetListener() {
@@ -152,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
                                         adapter = new MyAdapter(MainActivity.this, list);
                                         recyclerView.setAdapter(adapter);
                                         tvTotalCount.setText("Total Records : " + list.size());
-
                                     }
 
                                 }
@@ -186,11 +193,6 @@ public class MainActivity extends AppCompatActivity {
                 datePickerDialog.show();
 
                 //list.clear();
-
-                Toast.makeText(MainActivity.this,
-                        "Show Today Results", Toast.LENGTH_SHORT).show();
-
-
             }
         });
 
